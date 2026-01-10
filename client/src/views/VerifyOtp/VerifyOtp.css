@@ -1,0 +1,51 @@
+.verify-container {
+    max-width: 400px;
+    margin: 100px auto;
+    padding: 30px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.verify-container h2 {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.verify-container input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+.btn-verify {
+    background-color: #ffc107;
+    color: #000;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 10px;
+    width: 100%;
+    transition: background 0.3s;
+}
+
+.btn-verify:hover {
+    background-color: #e0a800;
+}
+
+.resend-text {
+    margin-top: 15px;
+    color: #007bff;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.resend-text:hover {
+    text-decoration: underline;
+}
