@@ -1,11 +1,25 @@
-import {Schema, model} from "mongoose";
+import { Schema, model } from "mongoose";
 // import bcrypt from "bcrypt";
 const userSchema = new Schema({
   name: String,
-  email: String,
+  email: {
+    type: String,
+    required: true,
+    unique: true
+  },
   phone: String,
-  password: String,
-  role: String,
+  password: {
+    type: String,
+    required: true
+  },
+  role: {
+    type: String,
+    default: "user"
+  },
+  isVerified: {
+    type: Boolean,
+    default: false
+  },
 }, { timestamps: true })
 
 // userSchema.pre("save", function (next) {

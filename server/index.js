@@ -3,204 +3,105 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import validator from "validator";
 import path from "path";
+import cors from "cors";
 const __dirname = path.resolve();
 dotenv.config();
 
 import User from "./models/User.js";
+import authRoutes from "./routes/auth.routes.js";
 import TyPdf from "./models/TyPdf.js";
 import SyPdf from "./models/SyPdf.js";
 import FyPdf from "./models/FyPdf.js";
 
 const app = express();
 app.use(express.json());
+app.use(cors({ origin: "http://localhost:3000" }));
 
 const PORT = process.env.PORT || 5000;
 mongoose.set("strictQuery", true);
 
-mongoose.connect(process.env.MONGODB_URL, () => {
-  console.log("Connected to MongoDB");
+mongoose.connect(process.env.MONGODB_URL)
+  .then(() => console.log("Connected to MongoDB"))
+  .catch((err) => console.log("MongoDB Connection Error: ", err));
+
+app.get("/health", (req, res) => {
+  res.send("Server is running");
 });
 
 // api routes starts here
-// signup api starts here
-app.post("/signup", async (req, res) => {
-  const { name, phone, email, password, role } = req.body;
-  if (!validator.isEmail(email)) {
-    return res.json({
-      success: false,
-      message: "Please Enter a valid Email Id",
-    });
-  }
-  if (!validator.isMobilePhone(phone)) {
-    return res.json({
-      success: false,
-      message: "Mobile Number must contain 10 digits",
-    });
-  }
+// Auth routes
+app.use(authRoutes);
 
-  if (!validator.isStrongPassword(password)) {
-    return res.json({
-      success: false,
-      message: "Password must contain A-Z,0-9 ,a-z, @",
-    });
-  }
-
-  // validation to check if all fields are filled starts here
-  const emptyFields = [];
-
-  if (!name) emptyFields.push("name");
-  if (!phone) emptyFields.push("phone");
-  if (!email) emptyFields.push("email");
-  if (!password) emptyFields.push("password");
-  if (!role) emptyFields.push("role");
-
-  if (emptyFields.length > 0) {
-    return res.json({
-      success: false,
-      message: `${emptyFields.join(", ")} are required`,
-    });
-  }
-
-  // validation to check if all fields are filled ends here
-
-  // validation to check if email already exists starts here
-  const existingUser = await User.findOne({ email: email });
-  if (existingUser) {
-    return res.json({
-      success: false,
-      message: "Email already exists",
-    });
-  }
-  // validation to check if email already exists ends here
-
-  // validation to check if phone already exists starts here
-  const existingUserPhone = await User.findOne({ phone: phone });
-  if (existingUserPhone) {
-    return res.json({
-      success: false,
-      message: "Phone already exists",
-    });
-  }
-  // validation to check if phone already exists ends here
-
-  const user = new User({
-    name: name,
-    phone: phone,
-    email: email,
-    password: password,
-    role: role,
-  });
-
-  const savedUser = await user.save();
-
-  res.json({
-    success: true,
-    message: "User created successfully",
-    data: savedUser,
-  });
-});
-// signup api ends here
-
-//  login api starts here
-app.post("/login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.json({
-        success: false,
-        message: "Email and password are required",
-      });
-    }
-    const existingUser = await User.findOne({
-      email: email,
-      password: password,
-    });
-
-    if (existingUser) {
-      return res.json({
-        success: true,
-        message: "Login successful",
-        data: existingUser,
-      });
-    } else {
-      return res.json({
-        success: false,
-        message: "Invalid email or password",
-      });
-    }
-  } catch (err) {
-    return res.json({
-      success: false,
-      message: "This is login portion error: " + err,
-    });
-  }
-});
-//  login api ends here
 
 // CRUD Operation starts here...
 // Create or ADD PDF api starts here
 app.post("/createTyPdf", async (req, res) => {
-  const { title, description, pdfUrl, imgUrl, year, faculty } = req.body;
+  try {
+    const { title, description, pdfUrl, imgUrl, year, faculty } = req.body;
 
-  const tyPdfs = new TyPdf({
-    title: title,
-    description: description,
-    pdfUrl: pdfUrl,
-    imgUrl: imgUrl,
-    year: year,
-    faculty: faculty,
-  });
+    const tyPdfs = new TyPdf({
+      title: title,
+      description: description,
+      pdfUrl: pdfUrl,
+      imgUrl: imgUrl,
+      year: year,
+      faculty: faculty,
+    });
 
-  const savedPdf = await tyPdfs.save();
+    const savedPdf = await tyPdfs.save();
 
-  res.json({
-    success: true,
-    message: "PDF added successfully",
-    data: savedPdf,
-  });
+    res.json({
+      success: true,
+      message: "PDF added successfully",
+      data: savedPdf,
+    });
+  } catch (e) { console.error(e); res.status(500).json({ error: e.message }) }
 });
 
 app.post("/createSyPdf", async (req, res) => {
-  const { title, description, pdfUrl, imgUrl, year, faculty } = req.body;
+  try {
+    const { title, description, pdfUrl, imgUrl, year, faculty } = req.body;
 
-  const syPdfs = new SyPdf({
-    title: title,
-    description: description,
-    pdfUrl: pdfUrl,
-    imgUrl: imgUrl,
-    year: year,
-    faculty: faculty,
-  });
+    const syPdfs = new SyPdf({
+      title: title,
+      description: description,
+      pdfUrl: pdfUrl,
+      imgUrl: imgUrl,
+      year: year,
+      faculty: faculty,
+    });
 
-  const savedPdf = await syPdfs.save();
+    const savedPdf = await syPdfs.save();
 
-  res.json({
-    success: true,
-    message: "PDF added successfully",
-    data: savedPdf,
-  });
+    res.json({
+      success: true,
+      message: "PDF added successfully",
+      data: savedPdf,
+    });
+  } catch (e) { console.error(e); res.status(500).json({ error: e.message }) }
 });
 
 app.post("/createFyPdf", async (req, res) => {
-  const { title, description, pdfUrl, imgUrl, year, faculty } = req.body;
+  try {
+    const { title, description, pdfUrl, imgUrl, year, faculty } = req.body;
 
-  const fyPdfs = new FyPdf({
-    title: title,
-    description: description,
-    pdfUrl: pdfUrl,
-    imgUrl: imgUrl,
-    year: year,
-    faculty: faculty,
-  });
+    const fyPdfs = new FyPdf({
+      title: title,
+      description: description,
+      pdfUrl: pdfUrl,
+      imgUrl: imgUrl,
+      year: year,
+      faculty: faculty,
+    });
 
-  const savedPdf = await fyPdfs.save();
+    const savedPdf = await fyPdfs.save();
 
-  res.json({
-    success: true,
-    message: "PDF added successfully",
-    data: savedPdf,
-  });
+    res.json({
+      success: true,
+      message: "PDF added successfully",
+      data: savedPdf,
+    });
+  } catch (e) { console.error(e); res.status(500).json({ error: e.message }) }
 });
 // Create or ADD PDF api ends here
 
@@ -284,22 +185,6 @@ app.get("/Typdfsbytitle", async (req, res) => {
   });
 });
 
-// // http://localhost:5000/pdfsbyyear?year=Third-Year
-// app.get("/pdfsbyyear", async(req, res)=>{
-//     const {year} = req.query;
-
-//     const tyPdfs = await TyPdf.find({
-//         year: {$regex: year, $options: 'i'}
-//     })
-
-//       res.json({
-//           success: true,
-//           message: "pdfs fetched successfully",
-//           data: tyPdfs
-//       })
-// })
-
-// api routes ends here
 
 app.use(express.static(path.join(__dirname, "..", "client", "build")));
 
