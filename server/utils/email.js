@@ -12,6 +12,15 @@ const transporter = nodemailer.createTransport({
     },
 });
 
+// Verify connection configuration
+transporter.verify((error, success) => {
+    if (error) {
+        console.error("SMTP Connection Error:", error);
+    } else {
+        console.log("SMTP Server is ready to take our messages");
+    }
+});
+
 export const sendVerificationEmail = async (to, subject, htmlContent) => {
     const mailOptions = {
         from: `"BCS Noteswala" <${process.env.SMTP_EMAIL}>`,
