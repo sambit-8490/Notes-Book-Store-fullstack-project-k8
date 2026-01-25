@@ -12,19 +12,14 @@ try {
 }
 
 const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,              // 587 is the standard submission port
-    secure: false,          // false = STARTTLS matches port 587
+    service: 'gmail',
     auth: {
         user: process.env.SMTP_EMAIL,
         pass: process.env.SMTP_PASSWORD,
     },
-    tls: {
-        rejectUnauthorized: false, // Helps when cloud IPs are flagged
-        ciphers: 'SSLv3'
-    },
-    connectionTimeout: 10000, // Explicit timeout
-    // Debug logging
+    // Increase timeout to 30s to rule out slow network
+    connectionTimeout: 30000,
+    socketTimeout: 30000, // Keep consistent with connectionTimeout
     logger: true,
     debug: true
 });
@@ -34,7 +29,7 @@ transporter.verify((error, success) => {
     if (error) {
         console.error("SMTP Connection Error Details:", error);
     } else {
-        console.log("SMTP Server is ready (IPv4 forced, Port 587)");
+        console.log("SMTP Server is ready (Service: Gmail)");
     }
 });
 
