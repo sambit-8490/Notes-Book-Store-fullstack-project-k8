@@ -4,8 +4,17 @@ import dotenv from "dotenv";
 import validator from "validator";
 import path from "path";
 import cors from "cors";
+import dns from "node:dns";
+
 const __dirname = path.resolve();
 dotenv.config();
+
+// Fix for Nodemailer/Gmail ETIMEDOUT on some networks (IPv6 issues)
+try {
+  dns.setDefaultResultOrder('ipv4first');
+} catch (e) {
+  console.log("Could not set DNS order:", e.message);
+}
 
 import User from "./models/User.js";
 import authRoutes from "./routes/auth.routes.js";

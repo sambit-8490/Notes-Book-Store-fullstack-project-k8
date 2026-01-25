@@ -3,13 +3,14 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com', // Strict Gmail Host
-    port: 465,              // Secure Port (Fixes Timeouts)
-    secure: true,           // SSL/TLS
+    service: 'gmail',
     auth: {
         user: process.env.SMTP_EMAIL,
         pass: process.env.SMTP_PASSWORD,
     },
+    // Debug logging to help identify connection issues on cloud logs
+    logger: true,
+    debug: true
 });
 
 // Verify connection configuration
@@ -23,7 +24,7 @@ transporter.verify((error, success) => {
 
 export const sendVerificationEmail = async (to, subject, htmlContent) => {
     const mailOptions = {
-        from: `"BCS Noteswala" <${process.env.SMTP_EMAIL}>`,
+        from: `"BCS Noteswala" < ${process.env.SMTP_EMAIL}> `,
         to,
         subject,
         html: htmlContent,
