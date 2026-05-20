@@ -5,13 +5,15 @@ import validator from "validator";
 import path from "path";
 import cors from "cors";
 import dns from "node:dns";
+import bcrypt from "bcrypt";
 
 const __dirname = path.resolve();
+
 dotenv.config();
 
 // Fix for Nodemailer/Gmail ETIMEDOUT on some networks (IPv6 issues)
 try {
-  dns.setDefaultResultOrder('ipv4first');
+  dns.setDefaultResultOrder("ipv4first");
 } catch (e) {
   console.log("Could not set DNS order:", e.message);
 }
@@ -23,38 +25,87 @@ import SyPdf from "./models/SyPdf.js";
 import FyPdf from "./models/FyPdf.js";
 
 const app = express();
+
 app.use(express.json());
 app.use(cors());
 
 const PORT = process.env.PORT || 5000;
+
 mongoose.set("strictQuery", true);
 
-mongoose.connect(process.env.MONGODB_URL)
-  .then(() => console.log("Connected to MongoDB"))
+// ================= DEFAULT ADMIN =================
+
+async function createDefaultAdmin() {
+  try {
+
+    const existingAdmin = await User.findOne({
+      email: "admin@noteswala.com",
+    });
+
+    if (existingAdmin) {
+      console.log("Default admin already exists");
+      return;
+    }
+
+    const hashedPassword = await bcrypt.hash("admin123", 10);
+
+    const admin = new User({
+      name: "Admin",
+      email: "admin@noteswala.com",
+      password: hashedPassword,
+      role: "admin",
+      isVerified: true,
+    });
+
+    await admin.save();
+
+    console.log("Default admin created successfully");
+
+  } catch (error) {
+
+    console.log("Admin creation error:", error.message);
+
+  }
+}
+
+// ================= MONGODB =================
+
+mongoose
+  .connect(process.env.MONGODB_URL)
+  .then(async () => {
+
+    console.log("Connected to MongoDB");
+
+    await createDefaultAdmin();
+
+  })
   .catch((err) => console.log("MongoDB Connection Error: ", err));
+
+// ================= HEALTH =================
 
 app.get("/health", (req, res) => {
   res.send("Server is running");
 });
 
-// api routes starts here
-// Auth routes
+// ================= AUTH ROUTES =================
+
 app.use(authRoutes);
 
+// ================= CREATE PDF =================
 
-// CRUD Operation starts here...
-// Create or ADD PDF api starts here
 app.post("/createTyPdf", async (req, res) => {
+
   try {
+
     const { title, description, pdfUrl, imgUrl, year, faculty } = req.body;
 
     const tyPdfs = new TyPdf({
-      title: title,
-      description: description,
-      pdfUrl: pdfUrl,
-      imgUrl: imgUrl,
-      year: year,
-      faculty: faculty,
+      title,
+      description,
+      pdfUrl,
+      imgUrl,
+      year,
+      faculty,
     });
 
     const savedPdf = await tyPdfs.save();
@@ -64,20 +115,32 @@ app.post("/createTyPdf", async (req, res) => {
       message: "PDF added successfully",
       data: savedPdf,
     });
-  } catch (e) { console.error(e); res.status(500).json({ error: e.message }) }
+
+  } catch (e) {
+
+    console.error(e);
+
+    res.status(500).json({
+      success: false,
+      error: e.message,
+    });
+
+  }
 });
 
 app.post("/createSyPdf", async (req, res) => {
+
   try {
+
     const { title, description, pdfUrl, imgUrl, year, faculty } = req.body;
 
     const syPdfs = new SyPdf({
-      title: title,
-      description: description,
-      pdfUrl: pdfUrl,
-      imgUrl: imgUrl,
-      year: year,
-      faculty: faculty,
+      title,
+      description,
+      pdfUrl,
+      imgUrl,
+      year,
+      faculty,
     });
 
     const savedPdf = await syPdfs.save();
@@ -87,20 +150,32 @@ app.post("/createSyPdf", async (req, res) => {
       message: "PDF added successfully",
       data: savedPdf,
     });
-  } catch (e) { console.error(e); res.status(500).json({ error: e.message }) }
+
+  } catch (e) {
+
+    console.error(e);
+
+    res.status(500).json({
+      success: false,
+      error: e.message,
+    });
+
+  }
 });
 
 app.post("/createFyPdf", async (req, res) => {
+
   try {
+
     const { title, description, pdfUrl, imgUrl, year, faculty } = req.body;
 
     const fyPdfs = new FyPdf({
-      title: title,
-      description: description,
-      pdfUrl: pdfUrl,
-      imgUrl: imgUrl,
-      year: year,
-      faculty: faculty,
+      title,
+      description,
+      pdfUrl,
+      imgUrl,
+      year,
+      faculty,
     });
 
     const savedPdf = await fyPdfs.save();
@@ -110,12 +185,23 @@ app.post("/createFyPdf", async (req, res) => {
       message: "PDF added successfully",
       data: savedPdf,
     });
-  } catch (e) { console.error(e); res.status(500).json({ error: e.message }) }
-});
-// Create or ADD PDF api ends here
 
-// All Fy Pdfs fetching api starts here
+  } catch (e) {
+
+    console.error(e);
+
+    res.status(500).json({
+      success: false,
+      error: e.message,
+    });
+
+  }
+});
+
+// ================= FETCH PDFs =================
+
 app.get("/FyallPdfs", async (req, res) => {
+
   const fyPdfs = await FyPdf.find();
 
   res.json({
@@ -124,10 +210,9 @@ app.get("/FyallPdfs", async (req, res) => {
     data: fyPdfs,
   });
 });
-// All Fy Pdfs fetching api ends here
 
-// All Sy Pdfs fetching api starts here
 app.get("/SyallPdfs", async (req, res) => {
+
   const syPdfs = await SyPdf.find();
 
   res.json({
@@ -136,10 +221,9 @@ app.get("/SyallPdfs", async (req, res) => {
     data: syPdfs,
   });
 });
-// All Sy Pdfs fetching api ends here
 
-// All Ty Pdfs fetching api starts here
 app.get("/TyallPdfs", async (req, res) => {
+
   const tyPdfs = await TyPdf.find();
 
   res.json({
@@ -148,11 +232,11 @@ app.get("/TyallPdfs", async (req, res) => {
     data: tyPdfs,
   });
 });
-// All Ty Pdfs fetching api ends here
 
-// Pdfs Search by title
-// http://localhost:5000/pdfsbytitle?title=Operating System
+// ================= SEARCH PDFs =================
+
 app.get("/Fypdfsbytitle", async (req, res) => {
+
   const { title } = req.query;
 
   const fyPdfs = await FyPdf.find({
@@ -167,6 +251,7 @@ app.get("/Fypdfsbytitle", async (req, res) => {
 });
 
 app.get("/Sypdfsbytitle", async (req, res) => {
+
   const { title } = req.query;
 
   const syPdfs = await SyPdf.find({
@@ -181,6 +266,7 @@ app.get("/Sypdfsbytitle", async (req, res) => {
 });
 
 app.get("/Typdfsbytitle", async (req, res) => {
+
   const { title } = req.query;
 
   const tyPdfs = await TyPdf.find({
@@ -194,12 +280,19 @@ app.get("/Typdfsbytitle", async (req, res) => {
   });
 });
 
+// ================= CLIENT BUILD =================
 
 app.use(express.static(path.join(__dirname, "..", "client", "build")));
 
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "..", "client", "build", "index.html"));
+
+  res.sendFile(
+    path.join(__dirname, "..", "client", "build", "index.html")
+  );
+
 });
+
+// ================= SERVER =================
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

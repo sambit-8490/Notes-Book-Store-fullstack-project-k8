@@ -1,0 +1,35 @@
+# docker-compose.yml
+version: "3.8"
+
+services:
+  client:
+    build:
+      context: ./client
+    container_name: noteswala-client
+    ports:
+      - "3000:3000"
+    depends_on:
+      - server
+
+  server:
+    build:
+      context: ./server
+    container_name: noteswala-server
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./server/.env
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:7
+    container_name: noteswala-mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:

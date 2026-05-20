@@ -1,37 +1,69 @@
+// client/src/views/FyPdfsList/FyPdfsList.js
+
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 import Navbar from "../../components/Navbar/Navbar";
 import { currentUser } from "../../util/currentUser";
 import PdfCard from "../../components/PdfCard";
+
 import "./FyPdfsList.css";
 
 import { loginRequired } from "../../util/loginRequired";
+import { API_URL } from "../../util/config";
 
 function FyPdfsList() {
+
   const [searchText, setSearchText] = useState("");
   const [currentPdfItems, setAllPdfitems] = useState([]);
 
   async function fetchAllItem() {
-    const response = await axios.get("/FyallPdfs");
-    console.log(response.data.data);
-    setAllPdfitems(response.data.data);
+
+    try {
+
+      const response = await axios.get(
+        `${API_URL}/FyallPdfs`
+      );
+
+      console.log(response.data.data);
+
+      setAllPdfitems(response.data.data);
+
+    } catch (error) {
+
+      console.log(error);
+
+    }
   }
 
   async function fetchSpecificItems() {
-    const response = await axios.get(`/Fypdfsbytitle?title=${searchText}`);
-    console.log(response.data.data);
-    setAllPdfitems(response.data.data);
+
+    try {
+
+      const response = await axios.get(
+        `${API_URL}/Fypdfsbytitle?title=${searchText}`
+      );
+
+      console.log(response.data.data);
+
+      setAllPdfitems(response.data.data);
+
+    } catch (error) {
+
+      console.log(error);
+
+    }
   }
 
   useEffect(() => {
+
     if (searchText.length > 0) {
       fetchSpecificItems();
     } else {
       fetchAllItem();
     }
-  }, [searchText]);
 
+  }, [searchText]);
 
   useEffect(() => {
     loginRequired();
@@ -39,8 +71,11 @@ function FyPdfsList() {
 
   return (
     <div>
+
       <Navbar user={currentUser?.name} />
+
       <div className="search-container">
+
         <input
           type="text"
           placeholder="Type to search your Subject Pdf"
@@ -48,24 +83,47 @@ function FyPdfsList() {
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
         />
+
       </div>
-      <div>
+
+      <div className="container">
+
+        <h2 className="about-heading text-center mt-4">
+          First Year PDF's
+        </h2>
+
         <div className="row">
-          <h2 className="about-heading">First Year PDF's</h2>
-          {currentPdfItems?.map((pdfs) => {
-            return (
-              <PdfCard
-                year={pdfs.year}
-                title={pdfs.title}
-                description={pdfs.description}
-                imgUrl={pdfs.imgUrl}
-                faculty={pdfs.faculty}
-                pdfUrl={pdfs.pdfUrl}
-              />
-            );
-          })}
+
+          {
+            currentPdfItems?.map((pdfs) => {
+
+              return (
+
+                <div
+                  className="col-md-4 mb-4"
+                  key={pdfs._id}
+                >
+
+                  <PdfCard
+                    year={pdfs.year}
+                    title={pdfs.title}
+                    description={pdfs.description}
+                    imgUrl={pdfs.imgUrl}
+                    faculty={pdfs.faculty}
+                    pdfUrl={pdfs.pdfUrl}
+                  />
+
+                </div>
+
+              );
+
+            })
+          }
+
         </div>
+
       </div>
+
     </div>
   );
 }
