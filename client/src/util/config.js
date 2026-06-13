@@ -1,3 +1,4 @@
-export const API_URL = "http://localhost:5000";
-// export const API_URL = "https://noteswala-thu9.onrender.com";
-
+export const API_URL =
+  window.location.hostname === "192.168.49.2"
+    ? "http://192.168.49.2:30001"
+    : "http://localhost:5000";
